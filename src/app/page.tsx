@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'; // shadcn button
 import { ChatWindow } from '@/components/chat/ChatWindow'; // Import chat window
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Modal
 
-// Nachrichtentyp
+// Erweitere den Nachrichtentyp so, dass text entweder ein string oder ein React-Element sein kann
 type Message = {
   id: string;
-  text: string;
+  text: string | React.ReactNode;
   isUserMessage?: boolean;
 };
 
@@ -30,33 +30,48 @@ export default function ChatPage() {
     "Frage 5: Wie beurteilst du deine wertvollen Zeiteinheiten?",
   ];
 
-  // Finale Ergebnisnachricht (Platzhalter) – Zeilenumbrüche und Tabs werden beibehalten
-  const finalResult = `Dein Wirksamkeitsfaktor:\t\t\t\t
-\t\t\t\t#NAME?
-\t\t\t\t#NAME?
-\t#NAME?\t\t\t0.0
-\t\t\t\t#DIV/0!
-\t\t\t\t0.0
+  // Finale Ergebnisnachricht als String mit Zeilenumbrüchen
+  const finalResultString = `WIRKSAMKEITSFAKTOR:
+------------------------------------
+Messwert 1: 85
+Messwert 2: 90
+Durchschnitt: 87.5
 
+WOCHENSTUNDEN:
+------------------------------------
+Arbeitszeit: 40h
+Freizeit: 20h
 
-\t\t\t\t0.0
-     Verteilung Wochenstunden\t\t\t#NAME?\t\t0
-     Ablenkungen\t\t\t0%\t\t0.0
-     Effektivität\t\t\t0%\t\t0
-     Zeitgewohnheiten\t\t\t0%\t\t0
-     Wertvolle Zeiteinheiten\t\t\t0%\t\t0
+ABLENKUNGEN:
+------------------------------------
+Smartphone: 15%
+Soziale Medien: 10%
+Sonstiges: 5%
 
+EFFEKTIVITÄT:
+------------------------------------
+Produktivität: 80%
+Pausen: 20%
 
-Dein Chronotyp:\t\t\t\t0
-\t\t\t\t0
-#NAME?\t\t\t\t0
-\t\t\t\t0
-\t\t\t\t0
-Du lebst tendenziell\t\t#NAME?\tStunden versetzt zu deinem Chronotyp\t\t
-\t\t
-Du schläfst ungefähr\t\t-484\tMinuten zu wenig`;
+ZEITGEWOHNHEITEN:
+------------------------------------
+Frühaufsteher: Ja
+Schlafrhythmus: Regelmäßig
 
-  // Beim Laden der Seite: Zeige eine Einleitungsnachricht und direkt danach die erste Frage
+WERTVOLLE ZEITEINHEITEN:
+------------------------------------
+Fokuszeiten: 4 Stunden
+Ablenkungszeiten: 2 Stunden
+
+CHRONOTYP:
+------------------------------------
+Typ: Morgenmensch
+Chronotyp-Verschiebung: +1 Stunde
+
+Du lebst tendenziell 1 Stunde versetzt zu deinem Chronotyp.
+Du schläfst ungefähr 30 Minuten zu wenig.`;
+
+  // Beim Laden der Seite: Zeige eine Einleitungsnachricht und danach die erste Frage
   useEffect(() => {
     if (messages.length === 0) {
       const welcomeMessage: Message = {
@@ -115,10 +130,11 @@ Du schläfst ungefähr\t\t-484\tMinuten zu wenig`;
     if (email.trim() === '') return;
     setShowEmailPrompt(false);
 
-    // Füge die finale Ergebnisnachricht hinzu
+    // Füge die finale Ergebnisnachricht hinzu – der Text wird in einem <pre>-Block angezeigt,
+    // damit die Formatierung (Zeilenumbrüche und Absätze) erhalten bleibt.
     const resultMessage: Message = {
       id: crypto.randomUUID(),
-      text: finalResult,
+      text: <pre style={{ whiteSpace: 'pre-wrap' }}>{finalResultString}</pre>,
       isUserMessage: false,
     };
     setTimeout(() => {
