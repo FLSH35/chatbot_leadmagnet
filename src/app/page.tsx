@@ -1,27 +1,24 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input'; // shadcn input
-import { Button } from '@/components/ui/button'; // shadcn button
-import { ChatWindow } from '@/components/chat/ChatWindow'; // Import chat window
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Modal
+import { Input } from '@/components/ui/input'; 
+import { Button } from '@/components/ui/button'; 
+import { ChatWindow } from '@/components/chat/ChatWindow'; 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'; 
 
-// Erweitere den Nachrichtentyp so, dass text entweder ein string oder ein React-Element sein kann
 type Message = {
   id: string;
-  text: string | React.ReactNode;
+  text: string;          // muss ein string bleiben
   isUserMessage?: boolean;
 };
 
 export default function ChatPage() {
-  // Zustände für Chat, Email, den aktuellen Schritt im Fragenfluss
   const [messages, setMessages] = useState<Message[]>([]);
   const [userInput, setUserInput] = useState('');
   const [email, setEmail] = useState('');
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
-  // currentStep repräsentiert den Index der zuletzt gestellten Frage (0 bis 4)
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Definiere die 5 Fragen zu den gewünschten Themen
+  // Beispielhafte 5 Fragen
   const questions = [
     "Frage 1: Wie ist die Verteilung deiner Wochenstunden?",
     "Frage 2: Wie bewertest du Ablenkungen in deinem Alltag?",
@@ -30,48 +27,48 @@ export default function ChatPage() {
     "Frage 5: Wie beurteilst du deine wertvollen Zeiteinheiten?",
   ];
 
-  // Finale Ergebnisnachricht als String mit Zeilenumbrüchen
+  // Beispielhaftes Endergebnis
   const finalResultString = `WIRKSAMKEITSFAKTOR:
-------------------------------
+------------------------------------
 Messwert 1: 85
 Messwert 2: 90
 Durchschnitt: 87.5
 
 WOCHENSTUNDEN:
-------------------------------
+------------------------------------
 Arbeitszeit: 40h
 Freizeit: 20h
 
 ABLENKUNGEN:
-------------------------------
+------------------------------------
 Smartphone: 15%
 Soziale Medien: 10%
 Sonstiges: 5%
 
 EFFEKTIVITÄT:
-------------------------------
+------------------------------------
 Produktivität: 80%
 Pausen: 20%
 
 ZEITGEWOHNHEITEN:
-------------------------------
+------------------------------------
 Frühaufsteher: Ja
 Schlafrhythmus: Regelmäßig
 
 WERTVOLLE ZEITEINHEITEN:
-------------------------------
+------------------------------------
 Fokuszeiten: 4 Stunden
 Ablenkungszeiten: 2 Stunden
 
 CHRONOTYP:
-------------------------------
+------------------------------------
 Typ: Morgenmensch
 Chronotyp-Verschiebung: +1 Stunde
 
 Du lebst tendenziell 1 Stunde versetzt zu deinem Chronotyp.
 Du schläfst ungefähr 30 Minuten zu wenig.`;
 
-  // Beim Laden der Seite: Zeige eine Einleitungsnachricht und danach die erste Frage
+  // Beim Laden der Seite: eine Einleitung + erste Frage
   useEffect(() => {
     if (messages.length === 0) {
       const welcomeMessage: Message = {
@@ -81,7 +78,6 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
       };
       setMessages([welcomeMessage]);
 
-      // Starte mit der ersten Frage (nach kurzem Delay)
       setTimeout(() => {
         const firstQuestion: Message = {
           id: crypto.randomUUID(),
@@ -91,13 +87,13 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
         setMessages((prev) => [...prev, firstQuestion]);
       }, 500);
     }
-  }, [messages.length, questions]);
+  }, [messages, questions]);
 
-  // Wird aufgerufen, wenn der User eine Antwort sendet
+  // User schickt Antwort
   const handleSend = () => {
     if (!userInput.trim()) return;
 
-    // Speichere die Antwort des Users
+    // Speichere User-Antwort
     const userMessage: Message = {
       id: crypto.randomUUID(),
       text: userInput,
@@ -106,7 +102,7 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
     setMessages((prev) => [...prev, userMessage]);
     setUserInput('');
 
-    // Wenn es noch nicht die letzte Frage war, stelle die nächste Frage
+    // Nächste Frage oder Email-Abfrage
     if (currentStep < questions.length - 1) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
@@ -119,22 +115,18 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
         setMessages((prev) => [...prev, nextQuestion]);
       }, 500);
     } else {
-      // Nachdem die letzte Frage beantwortet wurde, fordere die Email an,
-      // um das Ergebnis anzuzeigen.
       setShowEmailPrompt(true);
     }
   };
 
-  // Wird aufgerufen, wenn der User seine Email eingibt und bestätigt
+  // Email-Submit => Ergebnis anzeigen
   const handleEmailSubmit = () => {
     if (email.trim() === '') return;
     setShowEmailPrompt(false);
 
-    // Füge die finale Ergebnisnachricht hinzu – der Text wird in einem <pre>-Block angezeigt,
-    // damit die Formatierung (Zeilenumbrüche und Absätze) erhalten bleibt.
     const resultMessage: Message = {
       id: crypto.randomUUID(),
-      text: <pre style={{ whiteSpace: 'pre-wrap' }}>{finalResultString}</pre>,
+      text: finalResultString, // Hier nur als string
       isUserMessage: false,
     };
     setTimeout(() => {
@@ -146,7 +138,6 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
     <div className="flex flex-col h-screen w-full max-w-md mx-auto border rounded shadow">
       <ChatWindow messages={messages} />
 
-      {/* Email Prompt Modal – wird erst nach der letzten Frage angezeigt */}
       <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
         <DialogContent>
           <DialogHeader>
@@ -162,7 +153,6 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
         </DialogContent>
       </Dialog>
 
-      {/* Eingabe-Bereich */}
       <div className="p-3 border-t flex space-x-2">
         <Input
           type="text"
@@ -170,7 +160,7 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           className="flex-1"
-          disabled={showEmailPrompt} // Eingabe sperren, wenn Email abgefragt wird
+          disabled={showEmailPrompt}
         />
         <Button onClick={handleSend} disabled={showEmailPrompt}>
           Send
