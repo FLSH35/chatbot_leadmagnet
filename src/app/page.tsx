@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input'; 
 import { Button } from '@/components/ui/button'; 
 import { ChatWindow } from '@/components/chat/ChatWindow'; 
@@ -18,14 +18,14 @@ export default function ChatPage() {
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Beispielhafte 5 Fragen
-  const questions = [
+  // Beispielhafte 5 Fragen (stabil via useMemo, leeres Dep-Array)
+  const questions = useMemo(() => [
     "Frage 1: Wie ist die Verteilung deiner Wochenstunden?",
     "Frage 2: Wie bewertest du Ablenkungen in deinem Alltag?",
     "Frage 3: Wie schätzt du deine Effektivität ein?",
     "Frage 4: Wie würdest du deine Zeitgewohnheiten beschreiben?",
     "Frage 5: Wie beurteilst du deine wertvollen Zeiteinheiten?",
-  ];
+  ], []);
 
   // Beispielhaftes Endergebnis
   const finalResultString = `WIRKSAMKEITSFAKTOR:
@@ -87,6 +87,7 @@ Du schläfst ungefähr 30 Minuten zu wenig.`;
         setMessages((prev) => [...prev, firstQuestion]);
       }, 500);
     }
+  // Jetzt nur noch von "messages" abhängig, weil questions stabil ist
   }, [messages, questions]);
 
   // User schickt Antwort
