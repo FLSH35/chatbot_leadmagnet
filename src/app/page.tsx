@@ -32,39 +32,39 @@ export default function ChatPage() {
 
   // Finale Ergebnisnachricht als String mit Zeilenumbrüchen
   const finalResultString = `WIRKSAMKEITSFAKTOR:
-------------------------------------
+------------------------------
 Messwert 1: 85
 Messwert 2: 90
 Durchschnitt: 87.5
 
 WOCHENSTUNDEN:
-------------------------------------
+------------------------------
 Arbeitszeit: 40h
 Freizeit: 20h
 
 ABLENKUNGEN:
-------------------------------------
+------------------------------
 Smartphone: 15%
 Soziale Medien: 10%
 Sonstiges: 5%
 
 EFFEKTIVITÄT:
-------------------------------------
+------------------------------
 Produktivität: 80%
 Pausen: 20%
 
 ZEITGEWOHNHEITEN:
-------------------------------------
+------------------------------
 Frühaufsteher: Ja
 Schlafrhythmus: Regelmäßig
 
 WERTVOLLE ZEITEINHEITEN:
-------------------------------------
+------------------------------
 Fokuszeiten: 4 Stunden
 Ablenkungszeiten: 2 Stunden
 
 CHRONOTYP:
-------------------------------------
+------------------------------
 Typ: Morgenmensch
 Chronotyp-Verschiebung: +1 Stunde
 
