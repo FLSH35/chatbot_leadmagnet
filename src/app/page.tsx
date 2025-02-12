@@ -51,7 +51,7 @@ export default function MillionaireCalculatorMonthly() {
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-bold">
-            Werde Millionär*in – Monatliche Berechnung
+            Werde Millionär – Monatliche Berechnung
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
