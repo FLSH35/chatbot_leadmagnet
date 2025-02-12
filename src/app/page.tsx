@@ -5,34 +5,49 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 
 export default function MillionaireCalculatorMonthly() {
-  // Eingaben
+  // User inputs
   const [startCapital, setStartCapital] = useState<number>(10000);
   const [monthlyInvest, setMonthlyInvest] = useState<number>(500);
   const [annualReturnPercent, setAnnualReturnPercent] = useState<number>(8);
 
-  // Ergebnis
+  // Calculation result
   const [result, setResult] = useState<{
     months: number;
     years: number;
     restMonths: number;
   } | null>(null);
 
-  function handleCalculate() {
-    // Startwerte
-    let capital = startCapital;
-    const monthlyReturn = Math.pow(1 + annualReturnPercent / 100, 1 / 12) - 1;
-    // Alternative (vereinfachte) Variante: annualReturnPercent / 100 / 12
+  // Whether we show the dialog to collect email
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
 
+  // The user's email
+  const [email, setEmail] = useState("");
+
+  // Track whether user already subscribed (so we don't prompt again)
+  const [hasSubscribed, setHasSubscribed] = useState(false);
+
+  // Perform the monthly compounding
+  function calculateMonthly() {
+    let capital = startCapital;
+
+    // Convert annual return to monthly
+    const monthlyReturn = Math.pow(1 + annualReturnPercent / 100, 1 / 12) - 1;
     let months = 0;
-    const maxMonths = 12 * 100; // 100 Jahre als Maximum, um Endlosschleifen zu verhindern
+    const maxMonths = 12 * 100; // 100 years
 
     while (capital < 1_000_000 && months < maxMonths) {
       months++;
-      // 1) Monatliche Investition hinzufügen
+      // 1) Add monthly investment
       capital += monthlyInvest;
-      // 2) Kapital verzinsen
+      // 2) Apply monthly interest
       capital *= 1 + monthlyReturn;
     }
 
@@ -41,9 +56,29 @@ export default function MillionaireCalculatorMonthly() {
       const restMonths = months % 12;
       setResult({ months, years, restMonths });
     } else {
-      // Falls innerhalb von 100 Jahren keine Million erreicht wird
+      // Could not reach 1M in 100 years
       setResult(null);
     }
+  }
+
+  // Triggered by "Berechnen" button
+  function handleCalculate() {
+    // 1) Calculate the result
+    calculateMonthly();
+
+    // 2) If user is *not* subscribed, show email prompt
+    if (!hasSubscribed) {
+      setShowEmailPrompt(true);
+    }
+    // If user has already subscribed, we do NOT show the prompt again;
+    // the result will display directly in the UI below.
+  }
+
+  // Handle email submission
+  function handleEmailSubmit() {
+    if (!email.trim()) return;
+    setHasSubscribed(true);
+    setShowEmailPrompt(false);
   }
 
   return (
@@ -51,13 +86,13 @@ export default function MillionaireCalculatorMonthly() {
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-bold">
-            Werde Millionär – Monatliche Berechnung
+            Become a Millionaire – Monthly Calculation
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Startkapital */}
+          {/* Start Capital */}
           <div>
-            <Label htmlFor="startCapital">Startkapital (EUR)</Label>
+            <Label htmlFor="startCapital">Start Capital (EUR)</Label>
             <Input
               id="startCapital"
               type="number"
@@ -66,9 +101,9 @@ export default function MillionaireCalculatorMonthly() {
             />
           </div>
 
-          {/* Monatliche Investition */}
+          {/* Monthly Investment */}
           <div>
-            <Label htmlFor="monthlyInvest">Monatliche Investition (EUR)</Label>
+            <Label htmlFor="monthlyInvest">Monthly Investment (EUR)</Label>
             <Input
               id="monthlyInvest"
               type="number"
@@ -77,11 +112,9 @@ export default function MillionaireCalculatorMonthly() {
             />
           </div>
 
-          {/* Jährlicher Zinssatz (Slider) */}
+          {/* Annual Return (Slider) */}
           <div>
-            <Label>
-              Geschätzter jährlicher Return (%): {annualReturnPercent}%
-            </Label>
+            <Label>Estimated Annual Return (%): {annualReturnPercent}%</Label>
             <Slider
               value={[annualReturnPercent]}
               onValueChange={(val) => setAnnualReturnPercent(val[0])}
@@ -91,30 +124,56 @@ export default function MillionaireCalculatorMonthly() {
             />
           </div>
 
+          {/* Calculate Button */}
           <Button onClick={handleCalculate}>Berechnen</Button>
 
-          {/* Ergebnis-Anzeige */}
-          {result !== null ? (
+          {/* Show the result if the user has subscribed; otherwise, hide it. */}
+          {hasSubscribed && result !== null && (
             <div className="mt-4 p-3 rounded bg-green-50">
               <p>
-                Du erreichst die Million in <strong>{result.months}</strong>{" "}
-                Monaten, also in{" "}
+                You will reach one million in <strong>{result.months}</strong>{" "}
+                months, which is about{" "}
                 <strong>
-                  {result.years} Jahren und {result.restMonths} Monaten
+                  {result.years} years and {result.restMonths} months
                 </strong>
                 .
               </p>
             </div>
-          ) : (
+          )}
+
+          {/* If user is subscribed but the result is null => not reaching 1M in 100y */}
+          {hasSubscribed && result === null && (
             <div className="mt-4 p-3 rounded bg-red-50">
               <p>
-                Mit diesen Annahmen erreichst du die Million leider nicht innerhalb
-                von 100 Jahren.
+                It looks like you won't reach one million within 100 years at
+                these parameters.
               </p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog for collecting email (only appears if !hasSubscribed && showEmailPrompt) */}
+      <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign Up for Our Newsletter</DialogTitle>
+          </DialogHeader>
+          <p className="mb-2 text-sm text-gray-600">
+            To get your personal result, please sign up with your email.
+            We'll send you valuable insights, tools, and strategies
+            to help you on your financial journey. You only need to subscribe once.
+          </p>
+          <Input
+            type="email"
+            placeholder="Your email..."
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mb-4"
+          />
+          <Button onClick={handleEmailSubmit}>Get My Results</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
