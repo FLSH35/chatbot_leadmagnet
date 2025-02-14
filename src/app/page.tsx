@@ -1,179 +1,64 @@
-"use client";
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+import React from "react"
+import MillionaireCalculatorMonthly from "@/components/MillionaireCalculatorMonthly"
 
-export default function MillionaireCalculatorMonthly() {
-  // User inputs
-  const [startCapital, setStartCapital] = useState<number>(10000);
-  const [monthlyInvest, setMonthlyInvest] = useState<number>(500);
-  const [annualReturnPercent, setAnnualReturnPercent] = useState<number>(8);
-
-  // Calculation result
-  const [result, setResult] = useState<{
-    months: number;
-    years: number;
-    restMonths: number;
-  } | null>(null);
-
-  // Whether we show the dialog to collect email
-  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
-
-  // The user's email
-  const [email, setEmail] = useState("");
-
-  // Track whether user already subscribed (so we don't prompt again)
-  const [hasSubscribed, setHasSubscribed] = useState(false);
-
-  // Perform the monthly compounding
-  function calculateMonthly() {
-    let capital = startCapital;
-
-    // Convert annual return to monthly
-    const monthlyReturn = Math.pow(1 + annualReturnPercent / 100, 1 / 12) - 1;
-    let months = 0;
-    const maxMonths = 12 * 100; // 100 years
-
-    while (capital < 1_000_000 && months < maxMonths) {
-      months++;
-      // 1) Add monthly investment
-      capital += monthlyInvest;
-      // 2) Apply monthly interest
-      capital *= 1 + monthlyReturn;
-    }
-
-    if (capital >= 1_000_000) {
-      const years = Math.floor(months / 12);
-      const restMonths = months % 12;
-      setResult({ months, years, restMonths });
-    } else {
-      // Could not reach 1M in 100 years
-      setResult(null);
-    }
-  }
-
-  // Triggered by "Berechnen" button
-  function handleCalculate() {
-    // 1) Calculate the result
-    calculateMonthly();
-
-    // 2) If user is *not* subscribed, show email prompt
-    if (!hasSubscribed) {
-      setShowEmailPrompt(true);
-    }
-    // If user has already subscribed, we do NOT show the prompt again;
-    // the result will display directly in the UI below.
-  }
-
-  // Handle email submission
-  function handleEmailSubmit() {
-    if (!email.trim()) return;
-    setHasSubscribed(true);
-    setShowEmailPrompt(false);
-  }
-
+export default function Home() {
   return (
-    <div className="max-w-md mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">
-            Become a Millionaire – Monthly Calculation
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Start Capital */}
-          <div>
-            <Label htmlFor="startCapital">Start Capital (EUR)</Label>
-            <Input
-              id="startCapital"
-              type="number"
-              value={startCapital}
-              onChange={(e) => setStartCapital(Number(e.target.value))}
-            />
-          </div>
+    <main className="flex flex-col items-center w-full">
+      {/* Hero Section */}
+      <section className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white py-16 px-4 text-center">
+        <h1 className="text-4xl font-bold mb-4">Become a Millionaire</h1>
+        <p className="max-w-xl mx-auto text-lg">
+          A simple, free calculator that shows you how to reach your first million
+          with monthly investments and compound interest.
+        </p>
+      </section>
 
-          {/* Monthly Investment */}
-          <div>
-            <Label htmlFor="monthlyInvest">Monthly Investment (EUR)</Label>
-            <Input
-              id="monthlyInvest"
-              type="number"
-              value={monthlyInvest}
-              onChange={(e) => setMonthlyInvest(Number(e.target.value))}
-            />
-          </div>
+      {/* Intro / Explanation */}
+      <section className="py-10 px-4 max-w-2xl mx-auto text-center">
+        <h2 className="text-2xl font-semibold mb-4">Start Your Journey</h2>
+        <p className="mb-6 text-gray-700">
+          Use our compound interest calculator to see how your monthly
+          contributions can grow over time. Adjust the numbers to find the plan
+          that fits your financial goals.
+        </p>
+      </section>
 
-          {/* Annual Return (Slider) */}
-          <div>
-            <Label>Estimated Annual Return (%): {annualReturnPercent}%</Label>
-            <Slider
-              value={[annualReturnPercent]}
-              onValueChange={(val) => setAnnualReturnPercent(val[0])}
-              min={0}
-              max={50}
-              step={0.5}
-            />
-          </div>
+      {/* Vision Statement (Why, How, What) */}
+      <section className="py-10 px-4 max-w-2xl mx-auto text-center">
+        <h2 className="text-2xl font-semibold mb-4">Our Vision</h2>
 
-          {/* Calculate Button */}
-          <Button onClick={handleCalculate}>Berechnen</Button>
+        <p className="mb-6 text-gray-700">
+          <strong>Why:</strong> We believe that AI has the power to expand human
+          potential. By connecting people with smart, personalized AI coaching, we
+          enable greater autonomy, sharper decision-making, and a deeper sense of
+          purpose in life.
+        </p>
 
-          {/* Show the result if the user has subscribed; otherwise, hide it. */}
-          {hasSubscribed && result !== null && (
-            <div className="mt-4 p-3 rounded bg-green-50">
-              <p>
-                You will reach one million in <strong>{result.months}</strong>{" "}
-                months, which is about{" "}
-                <strong>
-                  {result.years} years and {result.restMonths} months
-                </strong>
-                .
-              </p>
-            </div>
-          )}
+        <p className="mb-6 text-gray-700">
+          <strong>How:</strong> We’re building a seamless interface that bridges
+          humans and AI, starting with innovative decision-making tools. These tools
+          empower you to tap into the vast capabilities of AI and gain real-time
+          guidance—so you can stay in control, yet never alone in your journey.
+        </p>
 
-          {/* If user is subscribed but the result is null => not reaching 1M in 100y */}
-          {hasSubscribed && result === null && (
-            <div className="mt-4 p-3 rounded bg-red-50">
-              <p>
-                It looks like you won't reach one million within 100 years at
-                these parameters.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <p className="mb-6 text-gray-700">
+          <strong>What:</strong> Our Monthly Millionaire Calculator is just the first
+          step. By giving you insight into compounding growth, we highlight how small
+          decisions can lead to big results. Over time, we’ll expand our suite of
+          AI-driven coaching solutions that help you reach your full potential and
+          make life more meaningful.
+        </p>
+      </section>
 
-      {/* Dialog for collecting email (only appears if !hasSubscribed && showEmailPrompt) */}
-      <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Sign Up for Our Newsletter</DialogTitle>
-          </DialogHeader>
-          <p className="mb-2 text-sm text-gray-600">
-            To get your personal result, please sign up with your email.
-            We'll send you valuable insights, tools, and strategies
-            to help you on your financial journey. You only need to subscribe once.
-          </p>
-          <Input
-            type="email"
-            placeholder="Your email..."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mb-4"
-          />
-          <Button onClick={handleEmailSubmit}>Get My Results</Button>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+      {/* Calculator */}
+      <section className="py-10 px-4 max-w-2xl mx-auto w-full">
+        <MillionaireCalculatorMonthly />
+      </section>
+
+      {/* Footer */}
+      <footer className="w-full mt-8 py-4 bg-gray-100 text-center text-gray-600">
+        <p>© {new Date().getFullYear()} My Finance Startup. All rights reserved.</p>
+      </footer>
+    </main>
+  )
 }
