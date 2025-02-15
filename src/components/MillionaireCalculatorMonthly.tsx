@@ -28,10 +28,10 @@ export default function MillionaireCalculatorMonthly() {
   // Whether we show the dialog to collect email
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
 
-  // The user's email
+  // The user&#39;s email
   const [email, setEmail] = useState("");
 
-  // Track whether user already subscribed (so we don't prompt again)
+  // Track whether user already subscribed (so we don&#39;t prompt again)
   const [hasSubscribed, setHasSubscribed] = useState(false);
 
   // Perform the monthly compounding
@@ -143,7 +143,7 @@ export default function MillionaireCalculatorMonthly() {
           {hasSubscribed && result === null && (
             <div className="mt-4 p-3 rounded bg-red-50 text-red-900">
               <p>
-                It looks like you won't reach one million within 100 years at
+                It looks like you won&#39;t reach one million within 100 years at
                 these parameters.
               </p>
             </div>
@@ -159,7 +159,7 @@ export default function MillionaireCalculatorMonthly() {
           </DialogHeader>
           <p className="mb-2 text-sm text-gray-600">
             To get your personal result, please sign up with your email.
-            We'll send you valuable insights, tools, and strategies
+            We&#39;ll send you valuable insights, tools, and strategies
             to help you on your financial journey. You only need to subscribe once.
           </p>
           <Input
