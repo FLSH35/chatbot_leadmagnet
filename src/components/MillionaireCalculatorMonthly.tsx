@@ -63,19 +63,30 @@ export default function AnlageTypTest() {
     setShowEmailPrompt(true); // Zeige das E-Mail-Dialog-Fenster, sobald das Ergebnis berechnet ist
   }
 
-  function handleEmailSubmit() {
+  async function handleEmailSubmit() {
     if (!email.trim()) return;
-    
-    // Hier simulieren wir das Senden der E-Mail mit dem Ergebnis
+  
     const resultToSend = anlageType;
     console.log('Subscribing with email:', email, 'and result:', resultToSend);
-
-    // In der Realität würdest du hier eine API-Anfrage senden, um die E-Mail zu abonnieren
-    // Beispiel: fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email, anlageType: resultToSend }) });
-    
-    setHasSubscribed(true);
-    setShowEmailPrompt(false);
+  
+    try {
+      const response = await fetch(
+        `https://us-central1-personality-score.cloudfunctions.net/subscribe_to_newsletter?email=${encodeURIComponent(email)}&first_name=Max&risikotyp=${encodeURIComponent(resultToSend)}`,
+        { method: 'POST' }
+      );
+  
+      if (!response.ok) {
+        throw new Error('Subscription failed');
+      }
+  
+      setHasSubscribed(true);
+      setShowEmailPrompt(false);
+      console.log('Subscription successful');
+    } catch (error) {
+      console.error('Error subscribing:', error);
+    }
   }
+  
 
   return (
     <div className="w-full max-w-md mx-auto p-4">
