@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -37,12 +39,65 @@ const results = [
   "Kunstliebhaber – Sammlerstücke"
 ];
 
+// Load Stripe outside of any component's render to avoid recreating the Stripe object on every render.
+const stripePromise = loadStripe('pk_test_51Qt8XO2ZULS45f0zdv9JwZhDAEKDAXSJhXF7IAzMbLK8ZkHbUHJd0X2xq5vgt5YfFk9Y7Iq1hazhe15MV6v4fE5l007ZOjGzsD'); // Replace with your Stripe publishable key
+
+function PaymentForm({ setPaid }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+
+    const { error, paymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      // Here you would send the paymentMethod.id to your server for payment confirmation
+      console.log('Payment Method:', paymentMethod);
+      // Mock server response for demonstration
+      const mockPaymentSuccess = await simulatePayment(paymentMethod.id);
+      if (mockPaymentSuccess) {
+        setPaid(true);
+      } else {
+        setError("Payment failed. Please try again.");
+      }
+    }
+  };
+
+  // This function simulates server-side payment confirmation
+  const simulatePayment = async (paymentMethodId) => {
+    // Normally, you'd make an API call to your server here
+    return new Promise(resolve => setTimeout(() => resolve(true), 1000)); // Simulate server response delay
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <CardElement />
+      <Button type="submit" disabled={!stripe}>Pay to Access Test</Button>
+      {error && <div className="card-error" role="alert">{error}</div>}
+    </form>
+  );
+}
+
 export default function AnlageTypTest() {
   const [answers, setAnswers] = useState(new Array(questions.length).fill(new Array(questions[0].types.length).fill(0)));
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
   const [email, setEmail] = useState("");
   const [hasSubscribed, setHasSubscribed] = useState(false);
   const [anlageType, setAnlageType] = useState(null);
+  const [paid, setPaid] = useState(false);
 
   function handleAnswerChange(questionIndex, typeIndex, value) {
     const newAnswers = [...answers];
@@ -86,66 +141,76 @@ export default function AnlageTypTest() {
       console.error('Error subscribing:', error);
     }
   }
-  
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">Welcher Anlagetyp bist du?</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {questions.map((q, i) => (
-            <div key={i}>
-              <Label>{q.question}</Label>
-              {q.types.map((type, typeIndex) => (
-                <div key={typeIndex} className="mb-2">
-                  <h4 className="text-sm font-medium">{type}</h4>
-                  {q.options.map((option, optionIndex) => (
-                    <div key={optionIndex} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name={`question-${i}-type-${typeIndex}`}
-                        checked={answers[i][typeIndex] === optionIndex}
-                        onChange={() => handleAnswerChange(i, typeIndex, optionIndex)}
-                      />
-                      <span>{option}</span>
+    <Elements stripe={stripePromise}>
+      <div className="w-full max-w-md mx-auto p-4">
+        {!paid ? 
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-bold">Pay to Access the Test</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PaymentForm setPaid={setPaid} />
+            </CardContent>
+          </Card>
+          :
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-bold">Welcher Anlagetyp bist du?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {questions.map((q, i) => (
+                <div key={i}>
+                  <Label>{q.question}</Label>
+                  {q.types.map((type, typeIndex) => (
+                    <div key={typeIndex} className="mb-2">
+                      <h4 className="text-sm font-medium">{type}</h4>
+                      {q.options.map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name={`question-${i}-type-${typeIndex}`}
+                            checked={answers[i][typeIndex] === optionIndex}
+                            onChange={() => handleAnswerChange(i, typeIndex, optionIndex)}
+                          />
+                          <span>{option}</span>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
               ))}
-            </div>
-          ))}
+              <Button onClick={calculateAnlageType}>Ergebnis anzeigen</Button>
+              {hasSubscribed && anlageType !== null && (
+                <div className="mt-4 p-3 rounded bg-green-50 text-green-900">
+                  <p>Du bist ein: <strong>{anlageType}</strong></p>
+                  <p>Dein Ergebnis wurde an deine E-Mail gesendet.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        }
 
-          <Button onClick={calculateAnlageType}>Ergebnis anzeigen</Button>
-
-          {hasSubscribed && anlageType !== null && (
-            <div className="mt-4 p-3 rounded bg-green-50 text-green-900">
-              <p>Du bist ein: <strong>{anlageType}</strong></p>
-              <p>Dein Ergebnis wurde an deine E-Mail gesendet.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Gib deine E-Mail-Adresse ein</DialogTitle>
-          </DialogHeader>
-          <p className="mb-2 text-sm text-gray-600">
-            Um dein Ergebnis zu sehen, gib bitte deine E-Mail-Adresse ein. Dein Ergebnis wird dann an diese E-Mail-Adresse gesendet.
-          </p>
-          <Input
-            type="email"
-            placeholder="Deine E-Mail..."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mb-4"
-          />
-          <Button onClick={handleEmailSubmit}>Ergebnis per E-Mail erhalten</Button>
-        </DialogContent>
-      </Dialog>
-    </div>
+        <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Gib deine E-Mail-Adresse ein</DialogTitle>
+            </DialogHeader>
+            <p className="mb-2 text-sm text-gray-600">
+              Um dein Ergebnis zu sehen, gib bitte deine E-Mail-Adresse ein. Dein Ergebnis wird dann an diese E-Mail-Adresse gesendet.
+            </p>
+            <Input
+              type="email"
+              placeholder="Deine E-Mail..."
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mb-4"
+            />
+            <Button onClick={handleEmailSubmit}>Ergebnis per E-Mail erhalten</Button>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </Elements>
   );
 }
