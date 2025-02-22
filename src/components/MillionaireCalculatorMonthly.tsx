@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,204 +12,166 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 
-const questions = [
-  {
-    question: "Wie viel Zeit widmest du monatlich dem Studium der folgenden Anlageklassen?",
-    types: ["Aktien", "Geldmarkt", "Anleihen", "Immobilien", "Rohstoffe", "Sammlerstücke", "Kryptowährungen"],
-    options: ["Weniger als 1 Stunde", "1-5 Stunden", "5-10 Stunden", "Mehr als 10 Stunden"]
-  },
-  {
-    question: "Wie groß ist dein Interesse an folgenden Anlageklassen?",
-    types: ["Aktien", "Geldmarkt", "Anleihen", "Immobilien", "Rohstoffe", "Sammlerstücke", "Kryptowährungen"],
-    options: ["Kein Interesse", "Geringes Interesse", "Mittleres Interesse", "Hohes Interesse"]
-  },
-  {
-    question: "Wie überzeugt bist du von den langfristigen Aussichten der folgenden Anlageklassen?",
-    types: ["Aktien", "Geldmarkt", "Anleihen", "Immobilien", "Rohstoffe", "Sammlerstücke", "Kryptowährungen"],
-    options: ["Sehr skeptisch", "Skeptisch", "Neutral", "Zuversichtlich", "Sehr zuversichtlich"]
-  },
-];
+export default function MillionaireCalculatorMonthly() {
+  // User inputs
+  const [startCapital, setStartCapital] = useState<number>(10000);
+  const [monthlyInvest, setMonthlyInvest] = useState<number>(500);
+  const [annualReturnPercent, setAnnualReturnPercent] = useState<number>(8);
 
-const results = [
-  "Analyst – Aktien, Kryptowährungen",
-  "Konservativ – Geldmarkt, Anleihen",
-  "Diversifiziert – Aktien, Immobilien, Anleihen",
-  "Spekulant – Rohstoffe, Kryptowährungen",
-  "Kunstliebhaber – Sammlerstücke"
-];
+  // Calculation result
+  const [result, setResult] = useState<{
+    months: number;
+    years: number;
+    restMonths: number;
+  } | null>(null);
 
-// Load Stripe outside of any component's render to avoid recreating the Stripe object on every render.
-const stripePromise = loadStripe('pk_test_51Qt8XO2ZULS45f0zdv9JwZhDAEKDAXSJhXF7IAzMbLK8ZkHbUHJd0X2xq5vgt5YfFk9Y7Iq1hazhe15MV6v4fE5l007ZOjGzsD'); // Replace with your Stripe publishable key
-
-function PaymentForm({ setPaid }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [error, setError] = useState(null);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    const cardElement = elements.getElement(CardElement);
-
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: 'card',
-      card: cardElement,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      // Here you would send the paymentMethod.id to your server for payment confirmation
-      console.log('Payment Method:', paymentMethod);
-      // Mock server response for demonstration
-      const mockPaymentSuccess = await simulatePayment(paymentMethod.id);
-      if (mockPaymentSuccess) {
-        setPaid(true);
-      } else {
-        setError("Payment failed. Please try again.");
-      }
-    }
-  };
-
-  // This function simulates server-side payment confirmation
-  const simulatePayment = async (paymentMethodId) => {
-    // Normally, you'd make an API call to your server here
-    return new Promise(resolve => setTimeout(() => resolve(true), 1000)); // Simulate server response delay
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <CardElement />
-      <Button type="submit" disabled={!stripe}>Pay to Access Test</Button>
-      {error && <div className="card-error" role="alert">{error}</div>}
-    </form>
-  );
-}
-
-export default function AnlageTypTest() {
-  const [answers, setAnswers] = useState(new Array(questions.length).fill(new Array(questions[0].types.length).fill(0)));
+  // Whether we show the dialog to collect email
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+
+  // The user's email
   const [email, setEmail] = useState("");
+
+  // Track whether user already subscribed (so we don't prompt again)
   const [hasSubscribed, setHasSubscribed] = useState(false);
-  const [anlageType, setAnlageType] = useState(null);
-  const [paid, setPaid] = useState(false);
 
-  function handleAnswerChange(questionIndex, typeIndex, value) {
-    const newAnswers = [...answers];
-    newAnswers[questionIndex][typeIndex] = value;
-    setAnswers(newAnswers);
-  }
+  // Perform the monthly compounding
+  function calculateMonthly() {
+    let capital = startCapital;
 
-  function calculateAnlageType() {
-    const scores = answers.map(q => q.reduce((sum, val) => sum + val, 0));
-    const maxScore = Math.max(...scores);
-    const typesWithMaxScore = scores.reduce((acc, score, index) => {
-      if (score === maxScore) acc.push(index);
-      return acc;
-    }, []);
+    // Convert annual return to monthly
+    const monthlyReturn = Math.pow(1 + annualReturnPercent / 100, 1 / 12) - 1;
+    let months = 0;
+    const maxMonths = 12 * 100; // 100 years
 
-    // Einfache Entscheidung für das Ergebnis basierend auf dem höchsten Score
-    setAnlageType(results[typesWithMaxScore[0]]); 
-    setShowEmailPrompt(true); // Zeige das E-Mail-Dialog-Fenster, sobald das Ergebnis berechnet ist
-  }
+    while (capital < 1_000_000 && months < maxMonths) {
+      months++;
+      // 1) Add monthly investment
+      capital += monthlyInvest;
+      // 2) Apply monthly interest
+      capital *= 1 + monthlyReturn;
+    }
 
-  async function handleEmailSubmit() {
-    if (!email.trim()) return;
-  
-    const resultToSend = anlageType;
-    console.log('Subscribing with email:', email, 'and result:', resultToSend);
-  
-    try {
-      const response = await fetch(
-        `https://us-central1-personality-score.cloudfunctions.net/subscribe_to_newsletter?email=${encodeURIComponent(email)}&first_name=Max&risikotyp=${encodeURIComponent(resultToSend)}`,
-        { method: 'POST' }
-      );
-  
-      if (!response.ok) {
-        throw new Error('Subscription failed');
-      }
-  
-      setHasSubscribed(true);
-      setShowEmailPrompt(false);
-      console.log('Subscription successful');
-    } catch (error) {
-      console.error('Error subscribing:', error);
+    if (capital >= 1_000_000) {
+      const years = Math.floor(months / 12);
+      const restMonths = months % 12;
+      setResult({ months, years, restMonths });
+    } else {
+      // Could not reach 1M in 100 years
+      setResult(null);
     }
   }
 
-  return (
-    <Elements stripe={stripePromise}>
-      <div className="w-full max-w-md mx-auto p-4">
-        {!paid ? 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">Pay to Access the Test</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PaymentForm setPaid={setPaid} />
-            </CardContent>
-          </Card>
-          :
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-bold">Welcher Anlagetyp bist du?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {questions.map((q, i) => (
-                <div key={i}>
-                  <Label>{q.question}</Label>
-                  {q.types.map((type, typeIndex) => (
-                    <div key={typeIndex} className="mb-2">
-                      <h4 className="text-sm font-medium">{type}</h4>
-                      {q.options.map((option, optionIndex) => (
-                        <div key={optionIndex} className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name={`question-${i}-type-${typeIndex}`}
-                            checked={answers[i][typeIndex] === optionIndex}
-                            onChange={() => handleAnswerChange(i, typeIndex, optionIndex)}
-                          />
-                          <span>{option}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <Button onClick={calculateAnlageType}>Ergebnis anzeigen</Button>
-              {hasSubscribed && anlageType !== null && (
-                <div className="mt-4 p-3 rounded bg-green-50 text-green-900">
-                  <p>Du bist ein: <strong>{anlageType}</strong></p>
-                  <p>Dein Ergebnis wurde an deine E-Mail gesendet.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        }
+  // Triggered by "Berechnen" button
+  function handleCalculate() {
+    // 1) Calculate the result
+    calculateMonthly();
 
-        <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Gib deine E-Mail-Adresse ein</DialogTitle>
-            </DialogHeader>
-            <p className="mb-2 text-sm text-gray-600">
-              Um dein Ergebnis zu sehen, gib bitte deine E-Mail-Adresse ein. Dein Ergebnis wird dann an diese E-Mail-Adresse gesendet.
-            </p>
+    // 2) If user is *not* subscribed, show email prompt
+    if (!hasSubscribed) {
+      setShowEmailPrompt(true);
+    }
+  }
+
+  // Handle email submission
+  function handleEmailSubmit() {
+    if (!email.trim()) return;
+    setHasSubscribed(true);
+    setShowEmailPrompt(false);
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">
+            Become a Millionaire – Monthly Calculation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Start Capital */}
+          <div>
+            <Label htmlFor="startCapital">Start Capital (EUR)</Label>
             <Input
-              type="email"
-              placeholder="Deine E-Mail..."
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mb-4"
+              id="startCapital"
+              type="number"
+              value={startCapital}
+              onChange={(e) => setStartCapital(Number(e.target.value))}
             />
-            <Button onClick={handleEmailSubmit}>Ergebnis per E-Mail erhalten</Button>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </Elements>
+          </div>
+
+          {/* Monthly Investment */}
+          <div>
+            <Label htmlFor="monthlyInvest">Monthly Investment (EUR)</Label>
+            <Input
+              id="monthlyInvest"
+              type="number"
+              value={monthlyInvest}
+              onChange={(e) => setMonthlyInvest(Number(e.target.value))}
+            />
+          </div>
+
+          {/* Annual Return (Slider) */}
+          <div>
+            <Label>Estimated Annual Return (%): {annualReturnPercent}%</Label>
+            <Slider
+              value={[annualReturnPercent]}
+              onValueChange={(val) => setAnnualReturnPercent(val[0])}
+              min={0}
+              max={50}
+              step={0.5}
+            />
+          </div>
+
+          {/* Calculate Button */}
+          <Button onClick={handleCalculate}>Berechnen</Button>
+
+          {/* Show the result if the user has subscribed; otherwise, hide it. */}
+          {hasSubscribed && result !== null && (
+            <div className="mt-4 p-3 rounded bg-green-50 text-green-900">
+              <p>
+                You will reach one million in <strong>{result.months}</strong>{" "}
+                months, which is about{" "}
+                <strong>
+                  {result.years} years and {result.restMonths} months
+                </strong>
+                .
+              </p>
+            </div>
+          )}
+
+          {/* If user is subscribed but the result is null => not reaching 1M in 100y */}
+          {hasSubscribed && result === null && (
+            <div className="mt-4 p-3 rounded bg-red-50 text-red-900">
+              <p>
+                It looks like you won't reach one million within 100 years at
+                these parameters.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialog for collecting email (only appears if !hasSubscribed && showEmailPrompt) */}
+      <Dialog open={showEmailPrompt} onOpenChange={setShowEmailPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign Up for Our Newsletter</DialogTitle>
+          </DialogHeader>
+          <p className="mb-2 text-sm text-gray-600">
+            To get your personal result, please sign up with your email.
+            We'll send you valuable insights, tools, and strategies
+            to help you on your financial journey. You only need to subscribe once.
+          </p>
+          <Input
+            type="email"
+            placeholder="Your email..."
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mb-4"
+          />
+          <Button onClick={handleEmailSubmit}>Get My Results</Button>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

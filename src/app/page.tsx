@@ -1,12 +1,9 @@
-
 "use client";
-import React, { useState } from "react";
-import MillionaireCalculatorMonthly from "@/components/MillionaireCalculatorMonthly";
+
+import React from "react";
 import Link from "next/link";
 
 export default function Home() {
-  const [showCalculator, setShowCalculator] = useState(false);
-
   return (
     <main className="flex flex-col items-center w-full">
       {/* Hero Section */}
@@ -31,7 +28,25 @@ export default function Home() {
       {/* Vision Statement (Why, How, What) */}
       <section className="py-10 px-4 max-w-2xl mx-auto text-center">
         <h2 className="text-2xl font-semibold mb-4">Our Vision</h2>
-        {/* ... existing vision content ... */}
+        <p className="mb-6 text-gray-700">
+          <strong>Why:</strong> We believe that AI has the power to expand human
+          potential. By connecting people with smart, personalized AI coaching, we
+          enable greater autonomy, sharper decision-making, and a deeper sense of
+          purpose in life.
+        </p>
+        <p className="mb-6 text-gray-700">
+          <strong>How:</strong> We’re building a seamless interface that bridges
+          humans and AI, starting with innovative decision-making tools. These tools
+          empower you to tap into the vast capabilities of AI and gain real-time
+          guidance—so you can stay in control, yet never alone in your journey.
+        </p>
+        <p className="mb-6 text-gray-700">
+          <strong>What:</strong> Our Monthly Millionaire Calculator is just the first
+          step. By giving you insight into compounding growth, we highlight how small
+          decisions can lead to big results. Over time, we’ll expand our suite of
+          AI-driven coaching solutions that help you reach your full potential and
+          make life more meaningful.
+        </p>
       </section>
 
       {/* Product Staircase */}
@@ -49,28 +64,13 @@ export default function Home() {
                 </div>
               </Link>
               {/* Potential-Analyse */}
-              <div 
-                className="w-full md:w-1/2"
-                onClick={() => setShowCalculator(!showCalculator)}
-              >
+              <Link href="/potential-analysis" className="w-full md:w-1/2">
                 <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl hover:bg-indigo-100 transition-all duration-300 cursor-pointer transform hover:-translate-y-2">
                   <h3 className="text-2xl font-semibold mb-3 text-indigo-700">Potential-Analyse</h3>
                   <p className="text-gray-600">How long to become a millionaire</p>
                 </div>
-              </div>
+              </Link>
             </div>
-            {/* Calculator Modal */}
-            {showCalculator && (
-              <div className="mt-6 bg-white rounded-xl shadow-lg p-6">
-                <MillionaireCalculatorMonthly />
-                <button 
-                  onClick={() => setShowCalculator(false)}
-                  className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                >
-                  Close Calculator
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
