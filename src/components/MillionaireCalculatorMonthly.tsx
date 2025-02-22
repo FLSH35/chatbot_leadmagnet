@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -9,7 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 export default function MillionaireCalculatorMonthly() {
@@ -26,22 +27,22 @@ export default function MillionaireCalculatorMonthly() {
   } | null>(null);
 
   // Whether we show the dialog to collect email
-  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [showEmailPrompt, setShowEmailPrompt] = useState<boolean>(false);
 
   // The user's email
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string>("");
 
   // Track whether user already subscribed (so we don't prompt again)
-  const [hasSubscribed, setHasSubscribed] = useState(false);
+  const [hasSubscribed, setHasSubscribed] = useState<boolean>(false);
 
   // Perform the monthly compounding
-  function calculateMonthly() {
-    let capital = startCapital;
+  function calculateMonthly(): void {
+    let capital: number = startCapital;
 
     // Convert annual return to monthly
-    const monthlyReturn = Math.pow(1 + annualReturnPercent / 100, 1 / 12) - 1;
-    let months = 0;
-    const maxMonths = 12 * 100; // 100 years
+    const monthlyReturn: number = Math.pow(1 + annualReturnPercent / 100, 1 / 12) - 1;
+    let months: number = 0;
+    const maxMonths: number = 12 * 100; // 100 years
 
     while (capital < 1_000_000 && months < maxMonths) {
       months++;
@@ -52,8 +53,8 @@ export default function MillionaireCalculatorMonthly() {
     }
 
     if (capital >= 1_000_000) {
-      const years = Math.floor(months / 12);
-      const restMonths = months % 12;
+      const years: number = Math.floor(months / 12);
+      const restMonths: number = months % 12;
       setResult({ months, years, restMonths });
     } else {
       // Could not reach 1M in 100 years
@@ -62,7 +63,7 @@ export default function MillionaireCalculatorMonthly() {
   }
 
   // Triggered by "Berechnen" button
-  function handleCalculate() {
+  function handleCalculate(): void {
     // 1) Calculate the result
     calculateMonthly();
 
@@ -73,7 +74,7 @@ export default function MillionaireCalculatorMonthly() {
   }
 
   // Handle email submission
-  function handleEmailSubmit() {
+  function handleEmailSubmit(): void {
     if (!email.trim()) return;
     setHasSubscribed(true);
     setShowEmailPrompt(false);
@@ -95,7 +96,9 @@ export default function MillionaireCalculatorMonthly() {
               id="startCapital"
               type="number"
               value={startCapital}
-              onChange={(e) => setStartCapital(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setStartCapital(Number(e.target.value))
+              }
             />
           </div>
 
@@ -106,7 +109,9 @@ export default function MillionaireCalculatorMonthly() {
               id="monthlyInvest"
               type="number"
               value={monthlyInvest}
-              onChange={(e) => setMonthlyInvest(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setMonthlyInvest(Number(e.target.value))
+              }
             />
           </div>
 
@@ -115,7 +120,7 @@ export default function MillionaireCalculatorMonthly() {
             <Label>Estimated Annual Return (%): {annualReturnPercent}%</Label>
             <Slider
               value={[annualReturnPercent]}
-              onValueChange={(val) => setAnnualReturnPercent(val[0])}
+              onValueChange={(val: number[]) => setAnnualReturnPercent(val[0])}
               min={0}
               max={50}
               step={0.5}
@@ -125,7 +130,7 @@ export default function MillionaireCalculatorMonthly() {
           {/* Calculate Button */}
           <Button onClick={handleCalculate}>Berechnen</Button>
 
-          {/* Show the result if the user has subscribed; otherwise, hide it. */}
+          {/* Show the result if the user has subscribed; otherwise, hide it */}
           {hasSubscribed && result !== null && (
             <div className="mt-4 p-3 rounded bg-green-50 text-green-900">
               <p>
@@ -143,7 +148,7 @@ export default function MillionaireCalculatorMonthly() {
           {hasSubscribed && result === null && (
             <div className="mt-4 p-3 rounded bg-red-50 text-red-900">
               <p>
-                It looks like you won't reach one million within 100 years at
+                It looks like you won&apos;t reach one million within 100 years at
                 these parameters.
               </p>
             </div>
@@ -159,14 +164,16 @@ export default function MillionaireCalculatorMonthly() {
           </DialogHeader>
           <p className="mb-2 text-sm text-gray-600">
             To get your personal result, please sign up with your email.
-            We'll send you valuable insights, tools, and strategies
-            to help you on your financial journey. You only need to subscribe once.
+            We&apos;ll send you valuable insights, tools, and strategies to help you
+            on your financial journey. You only need to subscribe once.
           </p>
           <Input
             type="email"
             placeholder="Your email..."
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
             className="mb-4"
           />
           <Button onClick={handleEmailSubmit}>Get My Results</Button>
