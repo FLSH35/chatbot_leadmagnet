@@ -28,6 +28,12 @@ export default function Home() {
       {/* Vision Statement (Why, How, What) */}
       <section className="py-10 px-4 max-w-2xl mx-auto text-center">
         <h2 className="text-2xl font-semibold mb-4">Our Vision</h2>
+        {/* Add the SVG here */}
+        <img
+          src="/grafik_vision.svg"
+          alt="Vision Graphic"
+          className="w-full max-w-md mx-auto mb-6"
+        />
         <p className="mb-6 text-gray-700">
           <strong>Why:</strong> We believe that AI has the power to expand human
           potential. By connecting people with smart, personalized AI coaching, we
